@@ -1020,10 +1020,7 @@ func Test_ConcurrentSetDel_CoupleOfSeconds(t *testing.T) {
 		// Give the OS a moment to release the file handle
 		time.Sleep(250 * time.Millisecond)
 
-		errRemove := os.Remove(filePath)
-		if errRemove != nil {
-			t.Logf("Warning: Failed to remove test file: %v", errRemove)
-		}
+		_ = os.Remove(filePath)
 	}()
 
 	// Create channels for communication
