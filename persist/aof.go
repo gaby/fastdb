@@ -219,39 +219,37 @@ func (aof *AOF) checkFileForCorruption(path string) error {
 
 // scanAndValidateFile scans the file and validates each line for corruption.
 func scanAndValidateFile(scanner *bufio.Scanner) (int, error) {
+	var line, lines string
+
 	lineCount := 0
 
 	for scanner.Scan() {
-		lines := ""
-		line := scanner.Text()
+		line = scanner.Text()
 		lineCount++
 
 		switch line {
 		case "set":
-			lines += line + "\n"
+			lines = line + "\n"
 
 			scanner.Scan()
 
-			line = scanner.Text()
 			lineCount++
 
-			lines += line + "\n"
+			lines += scanner.Text() + "\n"
 
 			scanner.Scan()
 
-			line = scanner.Text()
 			lineCount++
 
-			lines += line + "\n"
+			lines += scanner.Text() + "\n"
 		case "del":
-			lines += line + "\n"
+			lines = line + "\n"
 
 			scanner.Scan()
 
-			line = scanner.Text()
 			lineCount++
 
-			lines += line + "\n"
+			lines += scanner.Text() + "\n"
 		default:
 			return lineCount, fmt.Errorf("error: wrong instruction format '%s' on line: %d", line, lineCount)
 		}
@@ -551,16 +549,8 @@ func (aof *AOF) writeFile(keys map[string]map[int][]byte) error {
 	go aof.flush()
 
 	for bucket := range keys {
-		startLine := "set\n" + bucket + "_"
-
 		for key := range keys[bucket] {
-			value := string(keys[bucket][key])
-
-			value = strings.ReplaceAll(value, "\n", "\\n")
-
-			lines := startLine + strconv.Itoa(key) + "\n" + value + "\n"
-
-			err = aof.Write(lines)
+			err = aof.Write(createDataLine(bucket, keys[bucket][key], key))
 			if err != nil {
 				return fmt.Errorf("write error:%w", err)
 			}
@@ -568,6 +558,28 @@ func (aof *AOF) writeFile(keys map[string]map[int][]byte) error {
 	}
 
 	return nil
+}
+
+func createDataLine(bucket string, value []byte, key int) string {
+	var buf strings.Builder
+
+	_, _ = buf.WriteString("set\n")
+	_, _ = buf.WriteString(bucket)
+	_ = buf.WriteByte('_')
+	_, _ = buf.WriteString(strconv.Itoa(key))
+	_ = buf.WriteByte('\n')
+
+	for _, b := range value {
+		if b == '\n' {
+			_, _ = buf.WriteString("\\n")
+		} else {
+			_ = buf.WriteByte(b)
+		}
+	}
+
+	_, _ = buf.WriteString("\n")
+
+	return buf.String()
 }
 
 /*
