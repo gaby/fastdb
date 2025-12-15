@@ -5,7 +5,6 @@ package fastdb
 import (
 	"errors"
 	"fmt"
-	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -135,18 +134,23 @@ func (fdb *DB) GetAll(bucket string) (map[int][]byte, error) {
 /*
 GetAllSorted returns all map values from a bucket in Key sorted order.
 */
-func (fdb *DB) GetAllSorted(bucket string) ([]*SortRecord, error) {
+func (fdb *DB) GetAllSorted(bucket string) ([]SortRecord, error) {
 	memRecords, err := fdb.GetAll(bucket)
 	if err != nil {
 		return nil, err
 	}
 
-	sortedKeys := slices.Sorted(maps.Keys(memRecords))
+	sortedKeys := make([]int, 0, len(memRecords))
+	for k := range memRecords {
+		sortedKeys = append(sortedKeys, k)
+	}
 
-	sortedRecords := make([]*SortRecord, len(memRecords))
+	slices.Sort(sortedKeys)
+
+	sortedRecords := make([]SortRecord, len(sortedKeys))
 
 	for count, key := range sortedKeys {
-		sortedRecords[count] = &SortRecord{SortField: key, Data: memRecords[key]}
+		sortedRecords[count] = SortRecord{SortField: key, Data: memRecords[key]}
 	}
 
 	return sortedRecords, nil
