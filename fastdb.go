@@ -147,7 +147,6 @@ func (fdb *DB) GetAllSorted(bucket string) ([]*SortRecord, error) {
 
 	for count, key := range sortedKeys {
 		sortedRecords[count] = &SortRecord{SortField: key, Data: memRecords[key]}
-		// count++
 	}
 
 	return sortedRecords, nil
@@ -184,6 +183,13 @@ func (fdb *DB) Info() string {
 	}
 
 	return fmt.Sprintf("%d record(s) in %d bucket(s)", count, len(fdb.keys))
+}
+
+/*
+BucketInfo returns number of records in a bucket.
+*/
+func (fdb *DB) BucketInfo(bucket string) int {
+	return len(fdb.keys[bucket])
 }
 
 /*

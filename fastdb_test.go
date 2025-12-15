@@ -322,7 +322,7 @@ func Test_Defrag_1000lines(t *testing.T) {
 func Test_Defrag_250000lines(t *testing.T) {
 	t.Parallel()
 
-	path := "data/fastdb_defrag1000000.db"
+	path := "data/fastdb_defrag_250000.db"
 	filePath := filepath.Clean(path)
 
 	store, err := fastdb.Open(filePath, 250)
@@ -357,11 +357,14 @@ func Test_Defrag_250000lines(t *testing.T) {
 		recordData, err = json.Marshal(record)
 		require.NoError(t, err)
 
-		err = store.Set("records", record.ID, recordData)
+		err = store.Set("myBucket", record.ID, recordData)
 		require.NoError(t, err)
 	}
 
 	checkFileLines(t, filePath, total*3)
+
+	nrOfRecords := store.BucketInfo("myBucket")
+	assert.Equal(t, 10, nrOfRecords)
 
 	err = store.Defrag()
 	require.NoError(t, err)
