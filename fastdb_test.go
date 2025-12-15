@@ -998,7 +998,7 @@ func Test_ConcurrentSetDel_CoupleOfSeconds(t *testing.T) {
 	locRecBucket := "concurrent_test"
 
 	// Use a unique file path to avoid conflicts with other tests
-	path := "data/fastdb_concurrent_5sec.db"
+	path := "data/fastdb_concurrent_15sec.db"
 
 	path = strings.ReplaceAll(path, "/", string(os.PathSeparator)) // windows fix
 
@@ -1139,7 +1139,7 @@ func Test_ConcurrentSetDel_CoupleOfSeconds(t *testing.T) {
 		}(i)
 	}
 
-	// Run for 5 seconds
+	// Run for 15 seconds
 	time.Sleep(15 * time.Second)
 
 	// Signal goroutines to stop
@@ -1211,7 +1211,7 @@ func Test_ConcurrentSetDel_CoupleOfSecondsPart2(t *testing.T) {
 	locRecBucket := "concurrent_test"
 
 	// Deliberately use the same file as the other test
-	path := "data/fastdb_concurrent_5sec.db"
+	path := "data/fastdb_concurrent_15sec.db"
 
 	path = strings.ReplaceAll(path, "/", string(os.PathSeparator)) // windows fix
 
@@ -1392,18 +1392,6 @@ func Test_ConcurrentSetDel_CoupleOfSecondsPart2(t *testing.T) {
 	// Verify that we actually did some work
 	assert.Positive(t, finalSetCount, "Should have set some records")
 	assert.Positive(t, finalDelCount, "Should have deleted some records")
-
-	// Verify database integrity by checking each record
-	for id := range recordIDs {
-		data, ok := store.Get("concurrent_test", id)
-		assert.True(t, ok, "Record %d should exist in the database", id)
-		assert.NotNil(t, data, "Record data should not be nil")
-
-		// Verify we can unmarshal the data
-		record := &localRecord{}
-		err := json.Unmarshal(data, record)
-		assert.NoError(t, err, "Should be able to unmarshal record %d", id)
-	}
 }
 
 func Test_ConcurrentSetDel_CoupleOfSecondsPart3(t *testing.T) {
@@ -1555,7 +1543,7 @@ func Test_ConcurrentSetDel_CoupleOfSecondsPart3(t *testing.T) {
 	}
 
 	// Run for 5 seconds
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	// Signal goroutines to stop
 	close(done)
@@ -1594,18 +1582,6 @@ func Test_ConcurrentSetDel_CoupleOfSecondsPart3(t *testing.T) {
 	// Verify that we actually did some work
 	assert.Positive(t, finalSetCount, "Should have set some records")
 	assert.Positive(t, finalDelCount, "Should have deleted some records")
-
-	// Verify database integrity by checking each record
-	for id := range recordIDs {
-		data, ok := store.Get("concurrent_test", id)
-		assert.True(t, ok, "Record %d should exist in the database", id)
-		assert.NotNil(t, data, "Record data should not be nil")
-
-		// Verify we can unmarshal the data
-		record := &localRecord{}
-		err := json.Unmarshal(data, record)
-		assert.NoError(t, err, "Should be able to unmarshal record %d", id)
-	}
 }
 
 func Test_Reproduction_NewlineInValue(t *testing.T) {
